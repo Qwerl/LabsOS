@@ -1,19 +1,26 @@
+
 package lab1.main;
 
-import java.util.Date;
 import java.util.List;
 
 public class ThreadStarter implements Runnable{
 
-    private static int threadsCount = 0;
+    private static int threadsCount = -1;//старт с -1 так как 0 будет выполнять роль контроллера
 
     private int id;
     private int priority = 0 ;
     private boolean inCriticalZone = false;
     private boolean workWithResource = false;
 
-    private MyLoggerPanel logger = null; //ToDo: лишняя связь , избавиться
+    private MyLoggerPanel logger = null;
     private Thread thread = null;
+
+    public MyLoggerPanel getLogger() {
+        return logger;
+    }
+    public void setLogger(MyLoggerPanel logger) {
+        this.logger = logger;
+    }
 
     /**
      * работает ли в данный момент времени поток с ресурсом
@@ -66,7 +73,6 @@ public class ThreadStarter implements Runnable{
      */
     public void exitFromCriticalZone() {
         logger.addLog("поток №" + id + " вышел из критической зоны");
-        logger.addLog(new Date().toString());
         logger.updateTitle(id, "хорошо поработал");
         inCriticalZone = false;
     }
@@ -76,7 +82,6 @@ public class ThreadStarter implements Runnable{
         this.priority = priority;
         synchronized (this){threadsCount++;}
         id = threadsCount;
-        logger = new MyLoggerPanel(id);
     }
 
     /**
@@ -94,7 +99,6 @@ public class ThreadStarter implements Runnable{
      */
     private boolean checkEmploymentResource() {
         List <ThreadStarter> list = ThreadsFactory.getInstance().getThreadsList(); //получить список всех потоков
-        //for (ThreadStarter threadStarter : list) {
         for (int i = 0; i < list.size(); i++) {
             ThreadStarter threadStarter = list.get(i);
             if (threadStarter.getId() != this.id) //если сравнивается сам с собой
@@ -108,7 +112,7 @@ public class ThreadStarter implements Runnable{
                         logger.addLog("но его приоритет выше");
                         return false; //никто другой, до освобождения, с ним работать не может
                     }
-                    else if (threadStarter.getId() < this.id && threadStarter.getPriority() > this.getPriority()) {//если поток с таким-же приоритетом раньше изъявил желание
+                    else if (threadStarter.getId() < this.id && threadStarter.getPriority() >= this.getPriority()) {//если поток с таким-же приоритетом раньше изъявил желание
                         logger.addLog("но он раньше подал заявку");
                         return false;
                     }
@@ -132,7 +136,7 @@ public class ThreadStarter implements Runnable{
 
     private void hmmmm() {
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -151,5 +155,6 @@ public class ThreadStarter implements Runnable{
         doSomething();              //получили контроль над ресурсом , делаем с ним что-то
         endWorkWithResource();      //закончить работу с ресурсом
         exitFromCriticalZone();     //освобождаем ресурс , снимаем флаг
+        logger.addLog("END");
     }
 }

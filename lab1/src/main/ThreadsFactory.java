@@ -26,6 +26,22 @@ public class ThreadsFactory { //singleton factory
      */
     public ThreadStarter newThreadStarter(int priority) {
         ThreadStarter threadStarter = new ThreadStarter(priority);
+        threadStarter.setLogger(new MyLoggerPanel(threadStarter.getId()));
+        //ToDo: тут можно добавить взаимодействие с файлом конфигов
+        threads.add(threadStarter);
+        return threadStarter;
+    }
+
+    /**
+     * создаёт экземпляр класса ThreadStarter с контролируемым положением на экране, кладет его в список и возвращает
+     * @param priority приопитет потока
+     * @param x координаты логгера по x
+     * @param y координаты логгера по y
+     * @return возвращает созданный экземпляр класса ThreadStarter
+     */
+    public ThreadStarter newThreadStarter(int priority, int x, int y) {
+        ThreadStarter threadStarter = new ThreadStarter(priority);
+        threadStarter.setLogger(new MyLoggerPanel(threadStarter.getId(), x, y));
         //ToDo: тут можно добавить взаимодействие с файлом конфигов
         threads.add(threadStarter);
         return threadStarter;
