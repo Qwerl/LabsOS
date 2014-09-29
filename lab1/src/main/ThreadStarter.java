@@ -7,14 +7,23 @@ public class ThreadStarter implements Runnable{
 
     private static int threadsCount = -1;//старт с -1 так как 0 будет выполнять роль контроллера
 
+
+
+    String command = "";
+
     private int id;
     private int priority = 0 ;
     private boolean inCriticalZone = false;
     private boolean workWithResource = false;
+    private boolean workDone = false;
 
     private MyLoggerPanel logger = null;
-    private Thread thread = null;
+    private Thread thread = new Thread(this);//null;
 
+
+    public void setCommand(String command) {
+        this.command = command;
+    }
     public MyLoggerPanel getLogger() {
         return logger;
     }
@@ -33,6 +42,7 @@ public class ThreadStarter implements Runnable{
      * выставляет флаг работы с ресурсом
      */
     public void startWorkWithResource() {
+        logger.setState(MyLoggerPanel.WORK_WITH_RESOURCE);
         logger.addLog("начинаю работать с ресурсом");
         workWithResource = true;
     }
@@ -41,6 +51,7 @@ public class ThreadStarter implements Runnable{
      * снимает флаг работы с ресурсом
      */
     public void endWorkWithResource() {
+        logger.setState(MyLoggerPanel.WORK_WITH_RESOURCE);
         logger.addLog("освободил ресурс");
         workWithResource = false;
     }
@@ -64,6 +75,7 @@ public class ThreadStarter implements Runnable{
      * желает получить доступ к ресурсу , вешает флаг
      */
     public void enterToCriticalZone() {
+        logger.setState(MyLoggerPanel.CRITICAL_ZONE);
         logger.addLog("поток №" + id + " хочет войти в критическую зону");
         inCriticalZone = true;
     }
@@ -74,6 +86,7 @@ public class ThreadStarter implements Runnable{
     public void exitFromCriticalZone() {
         logger.addLog("поток №" + id + " вышел из критической зоны");
         logger.updateTitle(id, "хорошо поработал");
+        logger.setState(MyLoggerPanel.REST);
         inCriticalZone = false;
     }
 
@@ -112,7 +125,7 @@ public class ThreadStarter implements Runnable{
                         logger.addLog("но его приоритет выше");
                         return false; //никто другой, до освобождения, с ним работать не может
                     }
-                    else if (threadStarter.getId() < this.id && threadStarter.getPriority() >= this.getPriority()) {//если поток с таким-же приоритетом раньше изъявил желание
+                    else if (threadStarter.getId() < this.id && threadStarter.getPriority() >= this.getPriority()) {//если поток с таким-же приоритетом раньше изъявил желание //TODO багуля
                         logger.addLog("но он раньше подал заявку");
                         return false;
                     }
@@ -142,19 +155,40 @@ public class ThreadStarter implements Runnable{
         }
     }
 
+    private void waitForCommand() {
+        logger.addLog("работа выполнена, что делать дальше?\n" +
+                "    введите команду run для повторного выполнения работы\n" +
+                "    или команду exit для завершения работы потока");
+        while (!command.equals("run")) {
+            if(command.equals("exit")) {
+                workDone = true;
+                break;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        command = "";
+    }
+
     @Override
     public void run() {
         System.out.println(id + " started " + "№потока = " + thread.getId() + ", priority = " + this.getPriority());
         //фабричный метод
-        enterToCriticalZone();
-        while (!checkEmploymentResource()) { //пока не освободимся или не подойдет наше время, хммммм..., ждем...
-            hmmmm();
-            logger.updateTitle(id, "ресурс занят");
+        while (!workDone) {
+            enterToCriticalZone();
+            while (!checkEmploymentResource()) { //пока не освободимся или не подойдет наше время, хммммм..., ждем...
+                hmmmm();
+                logger.updateTitle(id, "ресурс занят");
+            }
+            startWorkWithResource();    //начать работу с ресурсом
+            doSomething();              //получили контроль над ресурсом , делаем с ним что-то
+            endWorkWithResource();      //закончить работу с ресурсом
+            exitFromCriticalZone();     //освобождаем ресурс , снимаем флаг
+            waitForCommand();           //выполнить работу ещё раз или закончить
         }
-        startWorkWithResource();    //начать работу с ресурсом
-        doSomething();              //получили контроль над ресурсом , делаем с ним что-то
-        endWorkWithResource();      //закончить работу с ресурсом
-        exitFromCriticalZone();     //освобождаем ресурс , снимаем флаг
         logger.addLog("END");
     }
 }

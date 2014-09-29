@@ -41,7 +41,9 @@ public class ThreadsFactory { //singleton factory
      */
     public ThreadStarter newThreadStarter(int priority, int x, int y) {
         ThreadStarter threadStarter = new ThreadStarter(priority);
-        threadStarter.setLogger(new MyLoggerPanel(threadStarter.getId(), x, y));
+        MyLoggerPanel logger = new MyLoggerPanel(threadStarter.getId(), x, y);
+        logger.setState(MyLoggerPanel.REST);
+        threadStarter.setLogger(logger);
         //ToDo: тут можно добавить взаимодействие с файлом конфигов
         threads.add(threadStarter);
         return threadStarter;

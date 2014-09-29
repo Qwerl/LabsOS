@@ -2,10 +2,15 @@ package lab1.main;
 
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
+import java.awt.*;
 import java.util.Date;
 import java.util.Random;
 
 public class MyLoggerPanel extends JFrame {
+
+    public final static Color REST = Color.GREEN;               //состояние покоя
+    public final static Color CRITICAL_ZONE = Color.YELLOW;     //нахождение в критической зоне
+    public final static Color WORK_WITH_RESOURCE = Color.RED;   //работа с ресурсом
 
     private int width = 380;
     private int height = 300;
@@ -53,6 +58,7 @@ public class MyLoggerPanel extends JFrame {
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         getContentPane().add(pane);
         setVisible(true);
+
     }
 
     /**
@@ -70,5 +76,8 @@ public class MyLoggerPanel extends JFrame {
     }
     public void cleanLogger(){
         textArea.setText(null);
+    }
+    public void setState (Color color) {
+        textArea.setBackground(color);
     }
 }
